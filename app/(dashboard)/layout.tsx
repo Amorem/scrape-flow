@@ -2,6 +2,7 @@ import { Separator } from "@/components/ui/separator";
 import DesktopSidebar from "@/components/Sidebar";
 import BreadcrumHeader from "@/components/BreadcrumHeader";
 import ThemeModeToggle from "@/components/ThemeModeToggle";
+import { SignedIn, UserButton } from "@clerk/nextjs";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,6 +13,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <BreadcrumHeader />
           <div className="gap-1 flex items-center">
             <ThemeModeToggle />
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
           </div>
         </header>
         <Separator />
