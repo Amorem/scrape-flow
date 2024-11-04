@@ -3,6 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Suspense } from "react";
 import { getWorkflowsForUser } from "../../actions/workflows/getWorkflowsForUser";
 import { AlertCircle, InboxIcon } from "lucide-react";
+import CreateWorkflowDialog from "./_components/CreateWorkflowDialog";
 
 export default function WorkflowsPage() {
   return (
@@ -12,6 +13,7 @@ export default function WorkflowsPage() {
           <h1 className="text-3xl font-bold">Workflows</h1>
           <p className="text-muted-foreground">Manage your workflows</p>
         </div>
+        <CreateWorkflowDialog />
       </div>
       <div className="h-full py-6">
         <Suspense fallback={<UserWorkflowsSkeleton />}>
@@ -59,9 +61,10 @@ async function UserWorkflows() {
             Click the button below to create your first workflow
           </p>
         </div>
+        <CreateWorkflowDialog triggerText="Create your first workflow" />
       </div>
     );
   }
 
-  return <div>Hello</div>;
+  return <pre>{JSON.stringify(workflows, null, 4)}</pre>;
 }
