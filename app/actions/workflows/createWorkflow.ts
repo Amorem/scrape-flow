@@ -3,7 +3,7 @@ import {
   createWorkflowSchema,
   createWorkflowSchemaType,
 } from "@/app/schema/workflow";
-import { WorkflowStatus } from "@/app/types/workflow";
+import { WorkflowStatus } from "@/types/workflow";
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
