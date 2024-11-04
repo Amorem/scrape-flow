@@ -3,7 +3,7 @@
 import {
   createWorkflowSchema,
   createWorkflowSchemaType,
-} from "@/app/schema/workflow";
+} from "@/schema/workflow";
 import CustomDialogHeader from "@/components/CustomDialogHeader";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
