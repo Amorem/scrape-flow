@@ -8,6 +8,9 @@ import {
   Background,
   BackgroundVariant,
   useReactFlow,
+  Connection,
+  addEdge,
+  Edge,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import NodeComponent from "./nodes/NodeComponent";
@@ -15,9 +18,14 @@ import { useCallback, useEffect } from "react";
 import { CreateFlowNode } from "@/lib/workflow/createFlowNode";
 import { TaskType } from "@/types/task";
 import { AppNode } from "@/types/appNodes";
+import DeletableEdge from "./edges/DeletableEdge";
 
 const nodeTypes = {
   FlowScrapeNode: NodeComponent,
+};
+
+const edgeTypes = {
+  default: DeletableEdge,
 };
 
 const snapGrid: [number, number] = [50, 50];
@@ -27,7 +35,7 @@ const fitViewOptions = {
 
 export default function FlowEditor({ workflow }: { workflow: Workflow }) {
   const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { setViewport, screenToFlowPosition } = useReactFlow();
 
   useEffect(() => {
@@ -63,6 +71,10 @@ export default function FlowEditor({ workflow }: { workflow: Workflow }) {
     setNodes((nodes) => nodes.concat(newNode));
   }, []);
 
+  const onConnect = useCallback((connection: Connection) => {
+    setEdges((edges) => addEdge({ ...connection, animated: true }, edges));
+  }, []);
+
   return (
     <main className="h-full w-full">
       <ReactFlow
@@ -71,11 +83,13 @@ export default function FlowEditor({ workflow }: { workflow: Workflow }) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         snapToGrid
         snapGrid={snapGrid}
         fitViewOptions={fitViewOptions}
         onDragOver={onDragOver}
         onDrop={onDrop}
+        onConnect={onConnect}
       >
         <Controls position="top-left" fitViewOptions={fitViewOptions} />
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
