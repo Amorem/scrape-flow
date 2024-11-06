@@ -1,7 +1,7 @@
 import { TaskParamType, TaskType } from "@/types/task";
 import { CodeIcon, LucideProps } from "lucide-react";
 
-export const PageToHtml = {
+export const PageToHtmlTask = {
   type: TaskType.PAGE_TO_HTML,
   label: "Get HMTL from page",
   icon: (props: LucideProps) => (
