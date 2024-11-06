@@ -1,8 +1,9 @@
 import { TaskParam, TaskParamType } from "@/types/task";
 import StringParam from "./param/StringParam";
 import { useReactFlow } from "@xyflow/react";
-import { appNode } from "@/types/appNodes";
+import { AppNode } from "@/types/appNodes";
 import { useCallback } from "react";
+import BrowserInstanceParam from "@/app/workflow/_components/nodes/param/BrowserInstanceParam";
 
 export default function NodeParamField({
   param,
@@ -12,7 +13,7 @@ export default function NodeParamField({
   nodeId: string;
 }) {
   const { updateNodeData, getNode } = useReactFlow();
-  const node = getNode(nodeId) as appNode;
+  const node = getNode(nodeId) as AppNode;
   const value = node?.data.inputs?.[param.name];
 
   const updatedNodeParamValue = useCallback(
@@ -36,6 +37,16 @@ export default function NodeParamField({
           updateNodeParamValue={updatedNodeParamValue}
         />
       );
+
+    case TaskParamType.BROWSER_INSTANCE:
+      return (
+        <BrowserInstanceParam
+          param={param}
+          value={""}
+          updateNodeParamValue={updatedNodeParamValue}
+        />
+      );
+
     default:
       return (
         <div className="w-full">
