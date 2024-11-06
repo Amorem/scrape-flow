@@ -7,7 +7,7 @@ export interface AppNodeData {
   [key: string]: any;
 }
 
-export interface appNode extends Node {
+export interface AppNode extends Node {
   data: AppNodeData;
 }
 
