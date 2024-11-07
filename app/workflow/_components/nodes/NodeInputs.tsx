@@ -22,11 +22,11 @@ export function NodeInput({
 
   return (
     <div className="flex justify-start relative p-3 w-full bg-secondary">
-      {/* <pre>{JSON.stringify(input, null, 4)}</pre> */}
       <NodeParamField param={input} nodeId={nodeId} disabled={isConnected} />
       {!input.hideHandle && (
         <Handle
           id={input.name}
+          isConnectable={!isConnected}
           type="target"
           position={Position.Left}
           className={cn(
