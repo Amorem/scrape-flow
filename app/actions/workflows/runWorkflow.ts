@@ -42,7 +42,7 @@ export async function RunWorkFlow(form: {
     throw new Error("Flow definition not valid");
   }
 
-  if (!result) {
+  if (!result.executionPlan) {
     throw new Error("No exection plan generated");
   }
 

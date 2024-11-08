@@ -30,11 +30,12 @@ export default function ExecuteBtn({ workflowId }: { workflowId: string }) {
       onClick={() => {
         const plan = generate();
         if (!plan) {
+          console.error("no plan !");
           // client-side validation
           return;
         }
-        console.log(" - - - - plan - - - - ");
-        console.table(plan);
+        // console.log(" - - - - plan - - - - ");
+        // console.table(plan);
 
         mutation.mutate({
           workflowId,
