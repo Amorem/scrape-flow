@@ -15,10 +15,10 @@ export default function Editor({ workflow }: { workflow: Workflow }) {
           subtitle={workflow.name}
           workflowId={workflow.id}
         />
-        <section className="flex h-full overflow-auto">
+        <div className="flex h-full overflow-auto">
           <TaskMenu />
           <FlowEditor workflow={workflow} />
-        </section>
+        </div>
       </div>
     </ReactFlowProvider>
   );

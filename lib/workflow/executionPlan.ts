@@ -5,7 +5,6 @@ import {
   WorkflowExecutionPlanPhase,
 } from "@/types/workflow";
 import { TaskRegistry } from "./task/registry";
-import { get } from "http";
 
 type FlowToExecutionPlanType = {
   executionPlan?: WorkflowExecutionPlan;
@@ -31,9 +30,12 @@ export function FlowToExecutionPlan(
       nodes: [entryPoint],
     },
   ];
+
+  planned.add(entryPoint.id);
+
   for (
     let phase = 2;
-    phase < nodes.length || planned.size < nodes.length;
+    phase < nodes.length && planned.size < nodes.length;
     phase++
   ) {
     const nextPhase: WorkflowExecutionPlanPhase = { phase, nodes: [] };
@@ -50,7 +52,10 @@ export function FlowToExecutionPlan(
           // if all incomers/edges are planned and ther are still invalid inputs
           // then the node has an invalid input
           // which means that the workflow is invalid
-          console.error(`Invalid inputs for node ${currentNode.id}`);
+          console.error(
+            `Invalid inputs for node ${currentNode.id}`,
+            invalidInputs
+          );
           throw new Error("Invalid inputs");
         } else {
           // lets skip this node for now
@@ -58,8 +63,11 @@ export function FlowToExecutionPlan(
         }
       }
       nextPhase.nodes.push(currentNode);
-      planned.add(currentNode.id);
     }
+    for (const node of nextPhase.nodes) {
+      planned.add(node.id);
+    }
+    executionPlan.push(nextPhase);
   }
   return { executionPlan };
 }
