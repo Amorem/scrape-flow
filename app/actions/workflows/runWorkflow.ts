@@ -10,6 +10,7 @@ import {
   WorkflowExecutionTrigger,
 } from "@/types/workflow";
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
 export async function RunWorkFlow(form: {
   workflowId: string;
@@ -84,4 +85,6 @@ export async function RunWorkFlow(form: {
   if (!execution) {
     throw new Error("Workflow Execution not created");
   }
+
+  redirect(`/workflow/runs/${workflowId}/${execution.id}`);
 }
