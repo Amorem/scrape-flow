@@ -1,13 +1,21 @@
 import "server-only";
 import prisma from "../prisma";
 import { revalidatePath } from "next/cache";
-import { init } from "next/dist/compiled/webpack/webpack";
+
 import {
   ExecutionPhaseStatus,
   WorkflowExecutionStatus,
 } from "@/types/workflow";
-import { initialize } from "next/dist/server/lib/render-server";
+
 import { waitFor } from "../helper/waitFor";
+
+import { ExecutionPhase } from "@prisma/client";
+import { AppNode } from "@/types/appNodes";
+import { TaskRegistry } from "./task/registry";
+import { run } from "node:test";
+import { ExecutorRegistry } from "./executor/registry";
+import { Environment, ExecutionEnvironment } from "@/types/executor";
+import { env } from "process";
 
 export async function ExecuteWorkflow(executionId: string) {
   const execution = await prisma.workflowExecution.findUnique({
@@ -24,16 +32,16 @@ export async function ExecuteWorkflow(executionId: string) {
     throw new Error("Execution not found");
   }
 
-  // TODO: Setup the execution environment
+  // Setup the execution environment
 
-  const environment = {
+  const environment: Environment = {
     phases: {},
   };
 
-  // TODO: Initialize workflow execution
+  // Initialize workflow execution
   await initializeWorkflowExecution(executionId, execution.workflowId);
 
-  // TODO: Initialize phases status
+  // Initialize phases status
   await initializePhasesStatuses(execution);
 
   let creditsConsumed = 0;
@@ -41,10 +49,16 @@ export async function ExecuteWorkflow(executionId: string) {
   for (const phase of execution.phases) {
     waitFor(5000);
     // TODO: Consume credits
-    // TODO: Execute phase
+    // Execute phase
+
+    const phaseExecution = await ExecuteWorkflowPhase(phase, environment);
+    if (!phaseExecution.success) {
+      executionFailed = true;
+      break;
+    }
   }
 
-  // TODO: Finalize execution
+  // Finalize execution
   await finalizeExecution(
     executionId,
     execution.workflowId,
@@ -132,4 +146,94 @@ async function finalizeExecution(
       // this means that we have triggered others runs for this workflow
       // while an execution was running
     });
+}
+
+async function ExecuteWorkflowPhase(
+  phase: ExecutionPhase,
+  environment: Environment
+) {
+  const startedAt = new Date();
+  const node = JSON.parse(phase.node) as AppNode;
+  setupEnvironmentForPhase(node, environment);
+
+  // Update phase status
+
+  await prisma.executionPhase.update({
+    where: {
+      id: phase.id,
+    },
+    data: {
+      status: ExecutionPhaseStatus.RUNNING,
+      startedAt,
+    },
+  });
+
+  const creditsRequired = TaskRegistry[node.data.type].credits;
+  console.log(
+    `Executing phase ${phase.name} with ${creditsRequired} credits required`
+  );
+
+  // TODO: Decrement user balance with required credits
+
+  const success = await executePhase(phase, node, environment);
+  await finalizePhase(phase.id, success);
+  return { success };
+}
+
+async function finalizePhase(phaseId: string, success: boolean) {
+  const finalStatus = success
+    ? ExecutionPhaseStatus.COMPLETED
+    : ExecutionPhaseStatus.FAILED;
+
+  await prisma.executionPhase.update({
+    where: {
+      id: phaseId,
+    },
+    data: {
+      status: finalStatus,
+      completedAt: new Date(),
+    },
+  });
+}
+
+async function executePhase(
+  phase: ExecutionPhase,
+  node: AppNode,
+  environment: Environment
+): Promise<boolean> {
+  const runFn = ExecutorRegistry[node.data.type];
+  if (!runFn) {
+    return false;
+  }
+  const executionEnvironment: ExecutionEnvironment<any> =
+    createExecutionEnvironment(node, environment);
+  return await runFn(executionEnvironment);
+}
+
+function setupEnvironmentForPhase(node: AppNode, environment: Environment) {
+  environment.phases[node.id] = {
+    inputs: {},
+    outputs: {},
+  };
+  const inputs = TaskRegistry[node.data.type].inputs;
+  for (const input of inputs) {
+    const inputValue = node.data.inputs[input.name];
+    if (inputValue) {
+      environment.phases[node.id].inputs[input.name] = inputValue;
+      continue;
+    }
+
+    // Get input value from outputs in the environment
+  }
+}
+
+function createExecutionEnvironment(
+  node: AppNode,
+  environment: Environment
+): ExecutionEnvironment<any> {
+  return {
+    getInput(name: string) {
+      return environment.phases[node.id]?.inputs[name];
+    },
+  };
 }
