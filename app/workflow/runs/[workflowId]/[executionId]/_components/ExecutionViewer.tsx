@@ -11,11 +11,13 @@ import {
   CalendarIcon,
   CircleDashedIcon,
   ClockIcon,
-  CoinsIcon,
+  CoinsIcon, Loader2Icon,
   LucideIcon,
   WorkflowIcon,
 } from "lucide-react";
 import { ReactNode } from "react";
+import {DatesToDurationString} from "@/lib/helper/dates";
+import {GetPhasesTotalCost} from "@/lib/helper/phases";
 
 type ExecutionData = Awaited<ReturnType<typeof GetWorkflowExecutionWithPhases>>;
 
@@ -33,6 +35,10 @@ export default function ExecutionViewer({
         ? 1000
         : false,
   });
+
+  const duration = DatesToDurationString(query.data?.completedAt, query.data?.startedAt)
+  const creditsConsumed = GetPhasesTotalCost(query.data?.phases || []);
+
   return (
     <div className="flex w-full h-full">
       <aside className="w-[440px] min-w[440px] max-w-[440px] border-r-2 border-separate flex flex-grow flex-col overflow-hidden">
@@ -55,11 +61,11 @@ export default function ExecutionViewer({
               </span>
             }
           />
-          <ExecutionLabel icon={ClockIcon} label="Duration" value={"TO DO"} />
+          <ExecutionLabel icon={ClockIcon} label="Duration" value={duration ? duration : <Loader2Icon className="animate-spin" size={20}/>} />
           <ExecutionLabel
             icon={CoinsIcon}
             label="Credits consumed"
-            value={"TO DO"}
+            value={creditsConsumed}
           />
         </div>
         <Separator />
@@ -72,7 +78,7 @@ export default function ExecutionViewer({
         <Separator />
         <div className="overflow-auto h-full px-2 py-4">
           {query.data?.phases.map((phase, index) => (
-            <Button key={phase.id} className="w-full justify-between">
+            <Button key={phase.id} className="w-full justify-between" variant={"ghost"}>
               <div className="flex items-center gap-2">
                 <Badge variant={"outline"}>{index + 1}</Badge>
                 <p className="font-semibold">{phase.name}</p>
