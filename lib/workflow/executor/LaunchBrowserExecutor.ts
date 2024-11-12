@@ -1,4 +1,3 @@
-import { waitFor } from "@/lib/helper/waitFor";
 import { ExecutionEnvironment } from "@/types/executor";
 import { LaunchBrowserTask } from "@/lib/workflow/task/LaunchBrowser";
 import puppeteer from "puppeteer";
@@ -17,8 +16,8 @@ export async function LaunchBrowserExecutor(
     await page.goto(websiteUrl);
     environment.setPage(page);
     return true;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    environment.log.ERROR(error.message);
     return false;
   }
 }

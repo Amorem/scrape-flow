@@ -1,9 +1,11 @@
 import { Edge } from "@xyflow/react";
+
 import { AppNode, AppNodeMissingInputs } from "@/types/appNodes";
 import {
   WorkflowExecutionPlan,
   WorkflowExecutionPlanPhase,
 } from "@/types/workflow";
+
 import { TaskRegistry } from "./task/registry";
 
 export enum FlowToExecutionPlanValidationError {
@@ -11,12 +13,14 @@ export enum FlowToExecutionPlanValidationError {
   "INVALID_INPUTS",
 }
 
+export type FlowToExecutionPlanError = {
+  type: FlowToExecutionPlanValidationError;
+  invalidElements?: AppNodeMissingInputs[];
+};
+
 type FlowToExecutionPlanType = {
   executionPlan?: WorkflowExecutionPlan;
-  error?: {
-    type: FlowToExecutionPlanValidationError;
-    invalidElements?: AppNodeMissingInputs[];
-  };
+  error?: FlowToExecutionPlanError;
 };
 
 export function FlowToExecutionPlan(
@@ -36,7 +40,6 @@ export function FlowToExecutionPlan(
   }
 
   const inputsWithErrors: AppNodeMissingInputs[] = [];
-
   const planned = new Set<string>();
 
   const invalidInputs = getInvalidInputs(entryPoint, edges, planned);
@@ -58,13 +61,13 @@ export function FlowToExecutionPlan(
 
   for (
     let phase = 2;
-    phase < nodes.length && planned.size < nodes.length;
+    phase <= nodes.length && planned.size < nodes.length;
     phase++
   ) {
     const nextPhase: WorkflowExecutionPlanPhase = { phase, nodes: [] };
     for (const currentNode of nodes) {
       if (planned.has(currentNode.id)) {
-        // Node already put in the execution plan
+        // Node already put in the execution plan.
         continue;
       }
 
@@ -72,27 +75,26 @@ export function FlowToExecutionPlan(
       if (invalidInputs.length > 0) {
         const incomers = getIncomers(currentNode, nodes, edges);
         if (incomers.every((incomer) => planned.has(incomer.id))) {
-          // if all incomers/edges are planned and ther are still invalid inputs
-          // then the node has an invalid input
-          // which means that the workflow is invalid
-          console.error(
-            `Invalid inputs for node ${currentNode.id}`,
-            invalidInputs
-          );
+          // If all incoming incomers/edges are planned and there are still invalid inputs,
+          // this mean that this particular node has an invalid input
+          // which mean that the workflow is invalid.
           inputsWithErrors.push({
             nodeId: currentNode.id,
             inputs: invalidInputs,
           });
         } else {
-          // lets skip this node for now
+          // let's skip this node for now
           continue;
         }
       }
+
       nextPhase.nodes.push(currentNode);
     }
+
     for (const node of nextPhase.nodes) {
       planned.add(node.id);
     }
+
     executionPlan.push(nextPhase);
   }
 
@@ -104,21 +106,24 @@ export function FlowToExecutionPlan(
       },
     };
   }
+
   return { executionPlan };
 }
 
 function getInvalidInputs(node: AppNode, edges: Edge[], planned: Set<string>) {
   const invalidInputs = [];
+
   const inputs = TaskRegistry[node.data.type].inputs;
   for (const input of inputs) {
     const inputValue = node.data.inputs[input.name];
     const inputValueProvided = inputValue?.length > 0;
     if (inputValueProvided) {
+      // this input is fine, so we can move on
       continue;
     }
 
-    // If a value is not provided by the user then we need to check
-    // if there is an output link that provides the value to the current input
+    // If a value is not provided by user then we need to check
+    // if there is an output linked to the current input
     const incomingEdges = edges.filter((edge) => edge.target === node.id);
     const inputLinkedToOutput = incomingEdges.find(
       (edge) => edge.targetHandle === input.name
@@ -131,16 +136,15 @@ function getInvalidInputs(node: AppNode, edges: Edge[], planned: Set<string>) {
 
     if (requiredInputProvidedByVisitedOutput) {
       // the inputs is required and we have a valid value for it
-      // provided by a task that is already planned
+      // provide by a task that is already planned
       continue;
     } else if (!input.required) {
-      // if the inputs is not required but there is an output linked to it
+      // If the inputs is not required but there is an output linked to it
       // then we need to be sure that the output is already planned
-      if (!inputLinkedToOutput) {
-        continue;
-      }
+      if (!inputLinkedToOutput) continue;
       if (inputLinkedToOutput && planned.has(inputLinkedToOutput.source)) {
-        // the ouput is providing a value to the input : we are good
+        // The output is providing a value to the input,
+        // so the input is fone
         continue;
       }
     }
@@ -152,14 +156,16 @@ function getInvalidInputs(node: AppNode, edges: Edge[], planned: Set<string>) {
 }
 
 function getIncomers(node: AppNode, nodes: AppNode[], edges: Edge[]) {
-  if (!node) {
+  if (!node.id) {
     return [];
   }
+
   const incomersIds = new Set();
   edges.forEach((edge) => {
     if (edge.target === node.id) {
       incomersIds.add(edge.source);
     }
   });
+
   return nodes.filter((node) => incomersIds.has(node.id));
 }
