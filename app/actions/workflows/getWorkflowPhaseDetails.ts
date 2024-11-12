@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { log } from "console";
 
 export async function GetWorkflowPhaseDetails(phaseId: string) {
   const { userId } = await auth();
@@ -12,6 +13,13 @@ export async function GetWorkflowPhaseDetails(phaseId: string) {
       id: phaseId,
       execution: {
         userId,
+      },
+    },
+    include: {
+      logs: {
+        orderBy: {
+          timestamp: "asc",
+        },
       },
     },
   });
