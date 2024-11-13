@@ -18,6 +18,5 @@ export async function getWorkflowsForUser() {
     },
   });
 
-  console.log("Workflows", result);
   return result;
 }
