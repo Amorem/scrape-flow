@@ -53,14 +53,14 @@ export async function ExecuteWorkflow(executionId: string) {
   let creditsConsumed = 0;
   let executionFailed = false;
   for (const phase of execution.phases) {
-    // TODO: Consume credits
-
     // Execute phase
     const phaseExecution = await ExecuteWorkflowPhase(
       phase,
       environment,
-      edges
+      edges,
+      execution.userId
     );
+    creditsConsumed += phaseExecution.creditsConsumed;
     if (!phaseExecution.success) {
       executionFailed = true;
       break;
@@ -161,7 +161,8 @@ async function finalizeExecution(
 async function ExecuteWorkflowPhase(
   phase: ExecutionPhase,
   environment: Environment,
-  edges: Edge[]
+  edges: Edge[],
+  userId: string
 ) {
   const startedAt = new Date();
   const node = JSON.parse(phase.node) as AppNode;
@@ -182,23 +183,31 @@ async function ExecuteWorkflowPhase(
   });
 
   const creditsRequired = TaskRegistry[node.data.type].credits;
-  // console.log(
-  //   `Executing phase ${phase.name} with ${creditsRequired} credits required`
-  // );
 
   // Decrement user balance with required credits
+  let success = await decrementCredits(userId, creditsRequired, logCollector);
+  const creditsConsumed = success ? creditsRequired : 0;
+  if (success) {
+    success = await executePhase(phase, node, environment, logCollector);
+  }
 
-  const success = await executePhase(phase, node, environment, logCollector);
   const outputs = environment.phases[node.id].outputs;
-  await finalizePhase(phase.id, success, outputs, logCollector);
-  return { success };
+  await finalizePhase(
+    phase.id,
+    success,
+    outputs,
+    logCollector,
+    creditsConsumed
+  );
+  return { success, creditsConsumed };
 }
 
 async function finalizePhase(
   phaseId: string,
   success: boolean,
   outputs: any,
-  logCollector: LogCollector
+  logCollector: LogCollector,
+  creditsConsumed: number
 ) {
   const finalStatus = success
     ? ExecutionPhaseStatus.COMPLETED
@@ -212,6 +221,7 @@ async function finalizePhase(
       status: finalStatus,
       completedAt: new Date(),
       outputs: JSON.stringify(outputs),
+      creditsConsumed,
       logs: {
         createMany: {
           data: logCollector.getAll().map((log) => ({
@@ -310,7 +320,11 @@ async function cleanupEnvironment(environment: Environment) {
   }
 }
 
-async function decrementCredits(userId: string, amount: number) {
+async function decrementCredits(
+  userId: string,
+  amount: number,
+  logCollector: LogCollector
+) {
   try {
     await prisma.userBalance.update({
       where: {
@@ -322,5 +336,8 @@ async function decrementCredits(userId: string, amount: number) {
       },
     });
     return true;
-  } catch (error) {}
+  } catch (error) {
+    logCollector.ERROR("insufficient balance");
+    return false;
+  }
 }
