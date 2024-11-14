@@ -8,6 +8,7 @@ import SaveBtn from "./SaveBtn";
 import ExecuteBtn from "./ExecuteBtn";
 import NavigationTabs from "./NavigationTabs";
 import PublishBtn from "./PublishBtn";
+import UnPublishBtn from "./UnPublishBtn";
 
 interface Props {
   title: string;
@@ -45,6 +46,7 @@ export default function Topbar({
         {hideButtons === false && (
           <>
             <ExecuteBtn workflowId={workflowId} />
+            {isPublished && <UnPublishBtn workflowId={workflowId} />}
             {!isPublished && (
               <>
                 <SaveBtn workflowId={workflowId} />
