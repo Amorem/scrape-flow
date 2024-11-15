@@ -4,6 +4,7 @@ import { useReactFlow } from "@xyflow/react";
 import { AppNode } from "@/types/appNodes";
 import { useCallback } from "react";
 import BrowserInstanceParam from "@/app/workflow/_components/nodes/param/BrowserInstanceParam";
+import SelectParam from "./param/SelectParam";
 
 export default function NodeParamField({
   param,
@@ -47,6 +48,16 @@ export default function NodeParamField({
           param={param}
           value={""}
           updateNodeParamValue={updatedNodeParamValue}
+        />
+      );
+
+    case TaskParamType.SELECT:
+      return (
+        <SelectParam
+          param={param}
+          value={value}
+          updateNodeParamValue={updatedNodeParamValue}
+          disabled={disabled}
         />
       );
 
