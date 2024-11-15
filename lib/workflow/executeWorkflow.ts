@@ -7,8 +7,6 @@ import {
   WorkflowExecutionStatus,
 } from "@/types/workflow";
 
-import { waitFor } from "../helper/waitFor";
-
 import { ExecutionPhase } from "@prisma/client";
 import { AppNode } from "@/types/appNodes";
 import { TaskRegistry } from "./task/registry";
@@ -18,7 +16,7 @@ import { TaskParamType } from "@/types/task";
 import { Browser, Page } from "puppeteer";
 import { Edge } from "@xyflow/react";
 import { LogCollector } from "@/types/log";
-import { create } from "domain";
+
 import { createLogCollector } from "../log";
 
 export async function ExecuteWorkflow(executionId: string, nextRun?: Date) {
@@ -245,6 +243,7 @@ async function executePhase(
 ): Promise<boolean> {
   const runFn = ExecutorRegistry[node.data.type];
   if (!runFn) {
+    logCollector.ERROR(`Not found Executor for ${node.data.type}`);
     return false;
   }
   const executionEnvironment: ExecutionEnvironment<any> =
