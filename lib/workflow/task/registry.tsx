@@ -6,6 +6,7 @@ import { WorkflowTask } from "@/types/workflow";
 import { FillInputTask } from "./FillIInput";
 import { ClickElementTask } from "./ClickElement";
 import { WaitForElementTask } from "./WaitForElement";
+import { DeliverViaWebhookTask } from "./DeliverViaWebhook";
 
 type Registry = {
   [key in TaskType]: WorkflowTask & { type: key };
@@ -18,4 +19,5 @@ export const TaskRegistry: Registry = {
   FILL_INPUT: FillInputTask,
   CLICK_ELEMENT: ClickElementTask,
   WAIT_FOR_ELEMENT: WaitForElementTask,
+  DELIVER_VIA_WEBHOOK: DeliverViaWebhookTask,
 };
