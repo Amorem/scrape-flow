@@ -2,7 +2,13 @@
 import React from "react";
 
 import { usePathname } from "next/navigation";
-import { Breadcrumb, BreadcrumbLink, BreadcrumbList } from "./ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "./ui/breadcrumb";
 import { MobileSidebar } from "./Sidebar";
 
 export default function BreadcrumHeader() {
@@ -16,9 +22,12 @@ export default function BreadcrumHeader() {
         <BreadcrumbList>
           {paths.map((path, index) => (
             <React.Fragment key={index}>
-              <BreadcrumbLink href={`/${path}`} className="capitalize">
-                {path === "" ? "Home" : path}
-              </BreadcrumbLink>
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/${path}`} className="capitalize">
+                  {path === "" ? "Home" : path}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              {index !== paths.length - 1 && <BreadcrumbSeparator />}
             </React.Fragment>
           ))}
         </BreadcrumbList>
