@@ -1,6 +1,5 @@
 "use client";
 
-import { deleteWorkflow } from "@/app/actions/workflows/deleteWorkflow";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,47 +9,51 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { XIcon } from "lucide-react";
+import { DeleteCredential } from "@/app/actions/credentials/deleteCredential";
 
-interface DeleteWorkflowDialogProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  workflowName: string;
-  workflowId: string;
+interface DeleteCredentialDialogProps {
+  name: string;
 }
 
-export default function DeleteWorkflowDialog({
-  open,
-  setOpen,
-  workflowName,
-  workflowId,
-}: DeleteWorkflowDialogProps) {
+export default function DeleteCredentialDialog({
+  name,
+}: DeleteCredentialDialogProps) {
+  const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const deleteMutation = useMutation({
-    mutationFn: deleteWorkflow,
+    mutationFn: DeleteCredential,
     onSuccess: () => {
-      toast.success("Workflow deleted successfully", { id: workflowId });
+      toast.success("Credential deleted successfully", { id: name });
       setConfirmText("");
     },
     onError: (error) => {
-      toast.error("Something went wrong", { id: workflowId });
+      toast.error("Something went wrong", { id: name });
     },
   });
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
+        <Button variant={"destructive"} size={"icon"}>
+          <XIcon size={18} />
+        </Button>
+      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
             This action cannot be undone. This will permanently delete the
-            workflow.
+            credential.
             <div className="flex flex-col py-4 gap-4">
               <p>
-                If you are sure, enter <b>{workflowName}</b> to confirm
+                If you are sure, enter <b>{name}</b> to confirm
               </p>
               <Input
                 value={confirmText}
@@ -65,11 +68,11 @@ export default function DeleteWorkflowDialog({
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
-            disabled={confirmText !== workflowName || deleteMutation.isPending}
+            disabled={confirmText !== name || deleteMutation.isPending}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 "
             onClick={() => {
-              toast.loading("Deleting workflow...", { id: workflowId });
-              deleteMutation.mutate(workflowId);
+              toast.loading("Deleting credential...", { id: name });
+              deleteMutation.mutate(name);
             }}
           >
             Delete
