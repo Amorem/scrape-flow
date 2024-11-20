@@ -5,6 +5,7 @@ import { AppNode } from "@/types/appNodes";
 import { useCallback } from "react";
 import BrowserInstanceParam from "@/app/workflow/_components/nodes/param/BrowserInstanceParam";
 import SelectParam from "./param/SelectParam";
+import CredentialParam from "./param/CredentialParam";
 
 export default function NodeParamField({
   param,
@@ -54,6 +55,16 @@ export default function NodeParamField({
     case TaskParamType.SELECT:
       return (
         <SelectParam
+          param={param}
+          value={value}
+          updateNodeParamValue={updatedNodeParamValue}
+          disabled={disabled}
+        />
+      );
+
+    case TaskParamType.CREDENTIAL:
+      return (
+        <CredentialParam
           param={param}
           value={value}
           updateNodeParamValue={updatedNodeParamValue}
