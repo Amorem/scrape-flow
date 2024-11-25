@@ -1,8 +1,8 @@
 import { ExecutionEnvironment } from "@/types/executor";
-import { ReadPropertyFromJsonTask } from "../task/ReadPropertyFromJson";
+import { AddPropertyToJsonTask } from "../task/AddPropertyToJson";
 
-export async function ReadPropertyFromJsonExecutor(
-  environment: ExecutionEnvironment<typeof ReadPropertyFromJsonTask>
+export async function AddPropertyToJsonExecutor(
+  environment: ExecutionEnvironment<typeof AddPropertyToJsonTask>
 ): Promise<boolean> {
   try {
     const jsonData = environment.getInput("JSON");
@@ -17,15 +17,16 @@ export async function ReadPropertyFromJsonExecutor(
       return false;
     }
 
-    const json = JSON.parse(jsonData);
-    const propertyValue = json[propertyName];
-
-    if (propertyValue === undefined) {
-      environment.log.ERROR("property not found");
+    const propertyValue = environment.getInput("Property value");
+    if (!propertyValue) {
+      environment.log.ERROR("input->propertyValue not defined");
       return false;
     }
 
-    environment.setOutput("Property value", propertyValue);
+    const json = JSON.parse(jsonData);
+    json[propertyName] = propertyValue;
+
+    environment.setOutput("Updated JSON", JSON.stringify(json));
     return true;
   } catch (error: any) {
     environment.log.ERROR(error.message);
