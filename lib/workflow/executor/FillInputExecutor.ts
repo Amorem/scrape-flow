@@ -1,6 +1,5 @@
 import { ExecutionEnvironment } from "@/types/executor";
 import { FillInputTask } from "../task/FillIInput";
-import { waitFor } from "@/lib/helper/waitFor";
 
 export async function FillInputExecutor(
   environment: ExecutionEnvironment<typeof FillInputTask>
@@ -18,7 +17,7 @@ export async function FillInputExecutor(
     }
 
     await environment.getPage()!.type(selector, value);
-    await waitFor(3000);
+
     return true;
   } catch (error: any) {
     environment.log.ERROR(error.message);
