@@ -1,7 +1,6 @@
 "use client";
 
 import { GetCreditsUsageInPeriod } from "@/app/actions/analytics/getCreditsUsageInPeriod";
-import { GetWorkflowExecutionStats } from "@/app/actions/analytics/getWorkflowExecutionStats";
 import {
   Card,
   CardContent,
@@ -18,8 +17,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { BarChart, ChartColumnStackedIcon } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis } from "@/components/ui/chart";
+import { ChartColumnStackedIcon } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 type ChartData = Awaited<ReturnType<typeof GetCreditsUsageInPeriod>>;
 const chartConfig = {
@@ -78,20 +77,18 @@ export default function CreditUsageChart({
             <ChartTooltip
               content={<ChartTooltipContent className="w-[250px]" />}
             />
-            <Area
+            <Bar
               dataKey={"success"}
-              min={0}
-              type={"bump"}
               fill="var(--color-success)"
-              fillOpacity={0.6}
+              fillOpacity={0.8}
+              radius={[0, 0, 4, 4]}
               stroke="var(--color-success)"
               stackId={"a"}
             />
-            <Area
+            <Bar
               dataKey={"failed"}
-              min={0}
-              type={"bump"}
               fill="var(--color-failed)"
+              radius={[4, 4, 0, 0]}
               fillOpacity={0.6}
               stroke="var(--color-failed)"
               stackId={"a"}
